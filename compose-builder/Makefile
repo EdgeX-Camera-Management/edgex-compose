@@ -33,16 +33,21 @@ KNOWN_SECRETS_LIST=redisdb[app-rules-engine]
 EXTRA_PROXY_ROUTE_LIST=
 GEN_EXT_DIR=gen_ext_compose
 BUS=
+NANOMQ=
+
+BROKER_YAML=add-mqtt-broker-mosquitto.yml
+TAF_BROKER_YAML=add-taf-mqtt-broker-mosquitto.yml
 
 # Must have spaces around words for `filter-out` function to work properly.
 # Dashes at beginning & end of line ensure space before/after the first/last option on that line
 # and don't impact the option list
 define OPTIONS
  - arm64 no-secty dev app-dev device-dev ui-dev delayed-start -
- - nats-bus mqtt-bus mqtt-broker mqtt-verbose -
+ - nats-bus mqtt-bus mqtt-broker mqtt-verbose nanomq -
  - taf-secty taf-no-secty taf-perf taf-perf-no-secty -
- - ds-onvif-camera ds-usb-camera ds-bacnet ds-modbus ds-mqtt ds-rest ds-snmp ds-virtual ds-llrp ds-coap ds-gpio -
- - asc-http asc-mqtt asc-sample asc-metrics as-llrp asc-ex-mqtt -
+ - ds-onvif-camera ds-usb-camera ds-bacnet-ip ds-bacnet-mstp ds-modbus ds-mqtt ds-rest ds-snmp ds-virtual ds-llrp -
+ - ds-coap ds-gpio ds-uart -
+ - asc-http asc-mqtt asc-sample asc-metrics as-llrp as-record-replay asc-ex-mqtt -
  - modbus-sim rtsp-server -
 endef
 export OPTIONS
@@ -121,6 +126,12 @@ ifeq (ds-onvif-camera, $(filter ds-onvif-camera,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-onvif-camera],message-bus[device-onvif-camera]
 		endif
+		PROXY_ROUTE:=device-onvif-camera.http://edgex-device-onvif-camera:59984
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-onvif-camera)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
@@ -143,6 +154,12 @@ ifeq (ds-usb-camera, $(filter ds-usb-camera,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-usb-camera],message-bus[device-usb-camera]
 		endif
+		PROXY_ROUTE:=device-usb-camera.http://edgex-device-usb-camera:59983
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-usb-camera device-usb-camera docker-entrypoint.sh)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
@@ -152,30 +169,64 @@ ifeq (ds-usb-camera, $(filter ds-usb-camera,$(ARGS)))
 		endif
 	endif
 endif
-ifeq (ds-bacnet, $(filter ds-bacnet,$(ARGS)))
-	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-device-bacnet.yml
+ifeq (ds-bacnet-ip, $(filter ds-bacnet-ip,$(ARGS)))
+	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-device-bacnet-ip.yml
 	ifneq (no-secty, $(filter no-secty,$(ARGS)))
 		ifeq ($(TOKEN_LIST),)
-			TOKEN_LIST:=device-bacnet
+			TOKEN_LIST:=device-bacnet-ip
 		else
-			TOKEN_LIST:=$(TOKEN_LIST),device-bacnet
+			TOKEN_LIST:=$(TOKEN_LIST),device-bacnet-ip
 		endif
 		ifeq ($(KNOWN_SECRETS_LIST),)
-			KNOWN_SECRETS_LIST:=redisdb[device-bacnet],message-bus[device-bacnet]
+			KNOWN_SECRETS_LIST:=redisdb[device-bacnet-ip],message-bus[device-bacnet-ip]
 		else
-			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-bacnet],message-bus[device-bacnet]
+			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-bacnet-ip],message-bus[device-bacnet-ip]
 		endif
-		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-bacnet device-bacnet device-bacnet-ip/device-bacnet-c " -cp=consul://edgex-core-consul:8500 --registry")
+		PROXY_ROUTE:=device-bacnet-ip.http://edgex-device-bacnet-ip:59980
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
+		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-bacnet-ip device-bacnet-ip device-bacnet-ip/device-bacnet-c " -cp=consul://edgex-core-consul:8500 --registry")
 
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
 		ifeq (delayed-start, $(filter delayed-start,$(ARGS)))
-			ext_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_runtime_token_config_compose_ext.sh device-bacnet)
+			ext_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_runtime_token_config_compose_ext.sh device-bacnet-ip)
 			COMPOSE_FILES:=$(COMPOSE_FILES) -f $(ext_file)
 		endif
 	endif
 endif
+ifeq (ds-bacnet-mstp, $(filter ds-bacnet-mstp,$(ARGS)))
+	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-device-bacnet-mstp.yml
+	ifneq (no-secty, $(filter no-secty,$(ARGS)))
+		ifeq ($(TOKEN_LIST),)
+			TOKEN_LIST:=device-bacnet-mstp
+		else
+			TOKEN_LIST:=$(TOKEN_LIST),device-bacnet-mstp
+		endif
+		ifeq ($(KNOWN_SECRETS_LIST),)
+			KNOWN_SECRETS_LIST:=redisdb[device-bacnet-mstp],message-bus[device-bacnet-mstp]
+		else
+			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-bacnet-mstp],message-bus[device-bacnet-mstp]
+		endif
+		PROXY_ROUTE:=device-bacnet-mstp.http://edgex-device-bacnet-mstp:59980
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
+		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-bacnet-mstp device-bacnet-mstp device-bacnet-mstp/device-bacnet-c " -cp=consul://edgex-core-consul:8500 --registry")
 
+		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
+		# add runtime token config for delayed-start if specified
+		ifeq (delayed-start, $(filter delayed-start,$(ARGS)))
+			ext_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_runtime_token_config_compose_ext.sh device-bacnet-mstp)
+			COMPOSE_FILES:=$(COMPOSE_FILES) -f $(ext_file)
+		endif
+	endif
+endif
 ifeq (ds-modbus, $(filter ds-modbus,$(ARGS)))
 	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-device-modbus.yml
 	ifneq (no-secty, $(filter no-secty,$(ARGS)))
@@ -188,6 +239,12 @@ ifeq (ds-modbus, $(filter ds-modbus,$(ARGS)))
 			KNOWN_SECRETS_LIST:=redisdb[device-modbus],message-bus[device-modbus]
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-modbus],message-bus[device-modbus]
+		endif
+		PROXY_ROUTE:=device-modbus.http://edgex-device-modbus:59901
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
 		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-modbus)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
@@ -215,6 +272,12 @@ ifeq (ds-mqtt, $(filter ds-mqtt,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-mqtt],message-bus[device-mqtt]
 		endif
+		PROXY_ROUTE:=device-mqtt.http://edgex-device-mqtt:59982
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-mqtt)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
@@ -227,10 +290,17 @@ endif
 ifeq (ds-rest, $(filter ds-rest,$(ARGS)))
 	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-device-rest.yml
 	ifneq (no-secty, $(filter no-secty,$(ARGS)))
+		# Device-rest's token is created by default, so not setting TOKEN_LIST
 		ifeq ($(KNOWN_SECRETS_LIST),)
 			KNOWN_SECRETS_LIST:=redisdb[device-rest],message-bus[device-rest]
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-rest],message-bus[device-rest]
+		endif
+		PROXY_ROUTE:=device-rest.http://edgex-device-rest:59986
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
 		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-rest)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
@@ -254,6 +324,12 @@ ifeq (ds-snmp, $(filter ds-snmp,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-snmp],message-bus[device-snmp]
 		endif
+		PROXY_ROUTE:=device-snmp.http://edgex-device-snmp:59993
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-snmp device-snmp device-snmp)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
@@ -266,12 +342,13 @@ endif
 ifeq (ds-virtual, $(filter ds-virtual,$(ARGS)))
 	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-device-virtual.yml
 	ifneq (no-secty, $(filter no-secty,$(ARGS)))
-		# Device-virtual's token is created by default.
+		# Device-virtual's token is created by default, so not setting TOKEN_LIST
 		ifeq ($(KNOWN_SECRETS_LIST),)
 			KNOWN_SECRETS_LIST:=redisdb[device-virtual],message-bus[device-virtual]
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-virtual],message-bus[device-virtual]
 		endif
+		# Device-virtual's proxy is created by default, so not setting EXTRA_PROXY_ROUTE_LIST
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-virtual)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
@@ -293,6 +370,12 @@ ifeq (ds-llrp, $(filter ds-llrp,$(ARGS)))
 			KNOWN_SECRETS_LIST:=redisdb[device-rfid-llrp],message-bus[device-rfid-llrp]
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-rfid-llrp],message-bus[device-rfid-llrp]
+		endif
+		PROXY_ROUTE:=device-rfid-llrp.http://edgex-device-rfid-llrp:59989
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
 		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-rfid-llrp)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
@@ -316,6 +399,12 @@ ifeq (ds-coap, $(filter ds-coap,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-coap],message-bus[device-coap]
 		endif
+		PROXY_ROUTE:=device-coap.http://edgex-device-coap:59988
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-coap)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
@@ -338,6 +427,12 @@ ifeq (ds-gpio, $(filter ds-gpio,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-gpio],message-bus[device-gpio]
 		endif
+		PROXY_ROUTE:=device-gpio.http://edgex-device-gpio:59910
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-gpio)
 		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
 		# add runtime token config for delayed-start if specified
@@ -347,6 +442,35 @@ ifeq (ds-gpio, $(filter ds-gpio,$(ARGS)))
 		endif
 	endif
 endif
+ifeq (ds-uart, $(filter ds-uart,$(ARGS)))
+	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-device-uart.yml
+	ifneq (no-secty, $(filter no-secty,$(ARGS)))
+		ifeq ($(TOKEN_LIST),)
+			TOKEN_LIST:=device-uart
+		else
+			TOKEN_LIST:=$(TOKEN_LIST),device-uart
+		endif
+		ifeq ($(KNOWN_SECRETS_LIST),)
+			KNOWN_SECRETS_LIST:=redisdb[device-uart],message-bus[device-uart]
+		else
+			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[device-uart],message-bus[device-uart]
+		endif
+		PROXY_ROUTE:=device-uart.http://edgex-device-uart:59995
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
+		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh device-uart)
+		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
+		# add runtime token config for delayed-start if specified
+		ifeq (delayed-start, $(filter delayed-start,$(ARGS)))
+			ext_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_runtime_token_config_compose_ext.sh device-uart)
+			COMPOSE_FILES:=$(COMPOSE_FILES) -f $(ext_file)
+		endif
+	endif
+endif
+
 # Add ModBus Simulator
 ifeq (modbus-sim, $(filter modbus-sim,$(ARGS)))
 	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-modbus-simulator.yml
@@ -365,6 +489,12 @@ ifeq (asc-http, $(filter asc-http,$(ARGS)))
 			KNOWN_SECRETS_LIST:=redisdb[app-http-export],message-bus[app-http-export]
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[app-http-export],message-bus[app-http-export]
+		endif
+		PROXY_ROUTE:=app-http-export.http://edgex-app-http-export:59704
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
 		endif
 		# when no security mode (no-secty) not explicitly specified,
 		# then we also need to add the secure version on top of base yml by default.
@@ -396,6 +526,12 @@ ifeq (asc-mqtt, $(filter asc-mqtt,$(ARGS)))
 		else
 			IS_MQTT_BUS:=0
 		endif
+		PROXY_ROUTE:=app-mqtt-export.http://edgex-app-mqtt-export:59703
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		# when no security mode (no-secty) not explicitly specified,
 		# then we also need to add the secure version on top of base yml by default.
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" IS_MQTT_BUS="$(IS_MQTT_BUS)" ./gen_secure_compose_ext.sh app-mqtt-export \
@@ -421,6 +557,12 @@ ifeq (asc-sample, $(filter asc-sample,$(ARGS)))
 			KNOWN_SECRETS_LIST:=redisdb[app-sample],message-bus[app-sample]
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[app-sample],message-bus[app-sample]
+		endif
+		PROXY_ROUTE:=app-sample.http://edgex-app-sample:59700
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
 		endif
 		# when no security mode (no-secty) not explicitly specified,
 		# then we also need to add the secure version on top of base yml by default.
@@ -448,6 +590,12 @@ ifeq (asc-metrics, $(filter asc-metrics,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[app-metrics-influxdb],message-bus[app-metrics-influxdb]
 		endif
+		PROXY_ROUTE:=app-metrics-influxdb.http://edgex-app-metrics-influxdb:59707
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		# when no security mode (no-secty) not explicitly specified,
 		# then we also need to add the secure version on top of base yml by default.
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh app-metrics-influxdb \
@@ -473,6 +621,12 @@ ifeq (as-llrp, $(filter as-llrp,$(ARGS)))
 		else
 			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[app-rfid-llrp-inventory],message-bus[app-rfid-llrp-inventory]
 		endif
+		PROXY_ROUTE:=app-rfid-llrp-inventory.http://edgex-app-rfid-llrp-inventory:59711
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
 		# when no security mode (no-secty) not explicitly specified,
 		# then we also need to add the secure version on top of base yml by default.
 		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh app-rfid-llrp-inventory)
@@ -484,6 +638,37 @@ ifeq (as-llrp, $(filter as-llrp,$(ARGS)))
 		endif
 	endif
 endif
+ifeq (as-record-replay, $(filter as-record-replay,$(ARGS)))
+	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-app-record-replay.yml
+	ifneq (no-secty, $(filter no-secty,$(ARGS)))
+		ifeq ($(TOKEN_LIST),)
+			TOKEN_LIST:=app-record-replay
+		else
+			TOKEN_LIST:=$(TOKEN_LIST),app-record-replay
+		endif
+		ifeq ($(KNOWN_SECRETS_LIST),)
+			KNOWN_SECRETS_LIST:=redisdb[app-record-replay],message-bus[app-record-replay]
+		else
+			KNOWN_SECRETS_LIST:=$(KNOWN_SECRETS_LIST),redisdb[app-record-replay],message-bus[app-record-replay]
+		endif
+		PROXY_ROUTE:=app-record-replay.http://edgex-app-record-replay:59712
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
+		endif
+		# when no security mode (no-secty) not explicitly specified,
+		# then we also need to add the secure version on top of base yml by default.
+		extension_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_secure_compose_ext.sh app-record-replay)
+		COMPOSE_FILES:=$(COMPOSE_FILES) -f $(extension_file)
+		# add runtime token config for delayed-start if specified
+		ifeq (delayed-start, $(filter delayed-start,$(ARGS)))
+			ext_file:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)" ./gen_runtime_token_config_compose_ext.sh app-record-replay)
+			COMPOSE_FILES:=$(COMPOSE_FILES) -f $(ext_file)
+		endif
+	endif
+endif
+
 ifeq (asc-ex-mqtt, $(filter asc-ex-mqtt,$(ARGS)))
 	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-asc-external-mqtt-trigger.yml
 	ifneq (no-secty, $(filter no-secty,$(ARGS)))
@@ -501,6 +686,12 @@ ifeq (asc-ex-mqtt, $(filter asc-ex-mqtt,$(ARGS)))
 			IS_MQTT_BUS:=1
 		else
 			IS_MQTT_BUS:=0
+		endif
+		PROXY_ROUTE:=app-external-mqtt-trigger.http://edgex-app-external-mqtt-trigger:59706
+		ifeq ($(EXTRA_PROXY_ROUTE_LIST),)
+			EXTRA_PROXY_ROUTE_LIST:=$(PROXY_ROUTE)
+		else
+			EXTRA_PROXY_ROUTE_LIST:=$(EXTRA_PROXY_ROUTE_LIST),$(PROXY_ROUTE)
 		endif
 		# when no security mode (no-secty) not explicitly specified,
 		# then we also need to add the secure version on top of base yml by default.
@@ -526,17 +717,29 @@ endif
 
 # Add a MQTT Broker
 ifeq (mqtt-broker, $(filter mqtt-broker,$(ARGS)))
-	COMPOSE_FILES:=$(COMPOSE_FILES) -f add-mqtt-broker.yml
+	ifeq (nanomq, $(filter nanomq,$(ARGS)))
+		# When just extra un-secured MQTT Broker, nanomq can be used in secure/non-secure modes
+		BROKER_YAML=add-mqtt-broker-nanomq.yml
+	endif
+	COMPOSE_FILES:=$(COMPOSE_FILES) -f ${BROKER_YAML}
 endif
 
 # Add switch to use MQTT Message Bus
 ifeq (mqtt-bus, $(filter mqtt-bus,$(ARGS)))
-	ifeq (no-secty, $(filter no-secty,$(ARGS)))
-		COMPOSE_FILES:=$(COMPOSE_FILES) -f add-mqtt-messagebus.yml -f add-mqtt-broker.yml
-	else
-		COMPOSE_FILES:=$(COMPOSE_FILES) -f add-mqtt-messagebus.yml -f add-secure-mqtt-messagebus.yml -f add-mqtt-broker.yml -f add-secure-mqtt-broker.yml
-	endif
 	BUS:=-mqtt-bus
+	ifeq (no-secty, $(filter no-secty,$(ARGS)))
+		ifeq (nanomq, $(filter nanomq,$(ARGS)))
+			NANOMQ:=-nanomq
+			COMPOSE_FILES:=$(COMPOSE_FILES) -f add-mqtt-messagebus.yml -f add-mqtt-broker-nanomq.yml
+		else
+			COMPOSE_FILES:=$(COMPOSE_FILES) -f add-mqtt-messagebus.yml -f add-mqtt-broker-mosquitto.yml
+		endif
+	else
+		ifeq (nanomq, $(filter nanomq,$(ARGS)))
+			ERR:=$(error nanomq option is not valid as MessageBus broker in secure mode)
+		endif
+		COMPOSE_FILES:=$(COMPOSE_FILES) -f add-mqtt-messagebus.yml -f add-secure-mqtt-messagebus.yml -f add-mqtt-broker-mosquitto.yml -f add-secure-mqtt-broker.yml
+	endif
 endif
 
 # Add switch to use NATS Message Bus
@@ -583,10 +786,10 @@ ifeq (taf-secty, $(filter taf-secty,$(ARGS)))
 		-f add-device-modbus.yml \
 		-f add-device-onvif-camera.yml \
 		-f add-taf-device-services-mods.yml \
-		-f add-mqtt-broker.yml \
+		-f add-mqtt-broker-mosquitto.yml \
 		-f add-modbus-simulator.yml \
 		-f add-delayed-start-services.yml \
-		-f add-taf-mqtt-broker.yml \
+		-f add-taf-mqtt-broker-mosquitto.yml \
 
 	ifeq (mqtt-bus, $(filter mqtt-bus,$(ARGS)))
 		IS_SECURE_MODE:=1
@@ -618,8 +821,14 @@ ifeq (taf-secty, $(filter taf-secty,$(ARGS)))
 	COMPOSE_FILES:=$(COMPOSE_FILES) -f $(asc_http_export_ext) -f $(asc_mqtt_export_ext) -f $(asc_external_mqtt_trigger_ext) -f $(scalability_mqtt_export_ext) -f $(asc_sample_ext)
 	COMPOSE_FILES:=$(COMPOSE_FILES) -f $(ds_virtual_ext) -f $(ds_rest_ext) -f $(ds_modbus_ext) -f $(ds_camera_ext)
 else
+	ifeq (nanomq, $(filter nanomq,$(ARGS)))
+		BROKER_YAML=add-mqtt-broker-nanomq.yml
+		TAF_BROKER_YAML=add-taf-mqtt-broker-nanomq.yml
+	endif
+
 	# Build compose for TAF non-secure testing (ignore all other compose file options)
     ifeq (taf-no-secty, $(filter taf-no-secty,$(ARGS)))
+
 		COMPOSE_FILES:= \
 			-f docker-compose-base.yml \
 			-f add-taf-app-services.yml \
@@ -632,9 +841,9 @@ else
 			-f add-device-modbus.yml \
             -f add-device-onvif-camera.yml \
 			-f add-taf-device-services-mods.yml \
-			-f add-mqtt-broker.yml \
+			-f ${BROKER_YAML} \
 			-f add-modbus-simulator.yml \
-			-f add-taf-mqtt-broker.yml 
+			-f ${TAF_BROKER_YAML}
 
         NO_SECURITY:=-no-secty
 
@@ -658,8 +867,8 @@ else
     			-f add-asc-mqtt-export.yml \
     			-f add-device-virtual.yml \
     			-f add-device-rest.yml \
-    			-f add-mqtt-broker.yml \
-				-f add-taf-mqtt-broker.yml \
+    			-f add-mqtt-broker-mosquitto.yml \
+				-f add-taf-mqtt-broker-mosquitto.yml \
 			-f add-delayed-start-services.yml
 			asc_mqtt_export_ext:= $(shell GEN_EXT_DIR="$(GEN_EXT_DIR)"  IS_MQTT_BUS="0" ./gen_secure_compose_ext.sh app-mqtt-export \
 				app-mqtt-export app-service-configurable)
@@ -674,8 +883,8 @@ else
 					-f add-asc-mqtt-export.yml \
 					-f add-device-virtual.yml \
 					-f add-device-rest.yml \
-					-f add-mqtt-broker.yml \
-					-f add-taf-mqtt-broker.yml 
+					-f ${BROKER_YAML} \
+					-f ${TAF_BROKER_YAML}
 
 				NO_SECURITY:=-no-secty
 			endif
@@ -695,7 +904,8 @@ export SPIFFE_ENDPOINTSOCKET
 define COMPOSE_DOWN
 	${DOCKER_COMPOSE} -p edgex \
 		-f docker-compose-base.yml \
-		-f add-device-bacnet.yml \
+		-f add-device-bacnet-ip.yml \
+		-f add-device-bacnet-mstp.yml \
 		-f add-device-onvif-camera.yml \
 		-f add-device-usb-camera.yml \
 		-f add-rtsp-server.yml \
@@ -706,6 +916,7 @@ define COMPOSE_DOWN
 		-f add-device-snmp.yml \
 		-f add-device-coap.yml \
 		-f add-device-gpio.yml \
+		-f add-device-uart.yml \
 		-f add-device-rfid-llrp.yml \
 		-f add-device-virtual.yml \
 		-f add-asc-http-export.yml \
@@ -714,8 +925,10 @@ define COMPOSE_DOWN
 		-f add-asc-sample.yml \
 		-f add-asc-metrics-influxdb.yml \
 		-f add-app-rfid-llrp-inventory.yml \
+		-f add-app-record-replay.yml \
 		-f add-modbus-simulator.yml \
-		-f add-mqtt-broker.yml \
+		-f add-mqtt-broker-mosquitto.yml \
+		-f add-mqtt-broker-nanomq.yml \
 		-f add-secure-mqtt-broker.yml \
 		-f add-mqtt-messagebus.yml \
 		-f add-secure-mqtt-messagebus.yml \
@@ -765,14 +978,18 @@ build-taf:
 	make taf-compose-perf taf-perf arm64
 	make taf-compose-perf taf-perf-no-secty arm64
 
+build-taf-nanomq:
+	make taf-compose taf-no-secty mqtt-bus nanomq no-secty
+	make taf-compose-perf taf-perf-no-secty mqtt-bus nanomq no-secty
+
 compose: gen
-	cat gen-header docker-compose.yml > $(RELEASE_FOLDER)/docker-compose$(NO_SECURITY)$(APP_SAMPLE)$(BUS)$(ARCH).yml
+	cat gen-header docker-compose.yml > $(RELEASE_FOLDER)/docker-compose$(NO_SECURITY)$(APP_SAMPLE)$(BUS)$(NANOMQ)$(ARCH).yml
 
 taf-compose: gen
-	cat gen-header docker-compose.yml > $(RELEASE_FOLDER)/taf/docker-compose-taf$(NO_SECURITY)$(BUS)$(ARCH).yml
+	cat gen-header docker-compose.yml > $(RELEASE_FOLDER)/taf/docker-compose-taf$(NO_SECURITY)$(BUS)$(NANOMQ)$(ARCH).yml
 
 taf-compose-perf: gen
-	cat gen-header docker-compose.yml > $(RELEASE_FOLDER)/taf/docker-compose-taf-perf$(NO_SECURITY)$(BUS)$(ARCH).yml
+	cat gen-header docker-compose.yml > $(RELEASE_FOLDER)taf/docker-compose-taf-perf$(NO_SECURITY)$(BUS)$(NANOMQ)$(ARCH).yml
 
 run: gen
 	${DOCKER_COMPOSE}  -p edgex up -d $(SERVICES)

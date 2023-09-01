@@ -54,13 +54,15 @@ declare -A appServiceDesc=(
     [asc-mqtt]="Include MQTT Export App Service"
     [asc-metrics]="Include Metrics to InfluxDB App Service"
     [asc-sample]="Include Sample App Service"
-    [as-llrp]="Include RFID LLRP Inventory"
+    [as-llrp]="Include RFID LLRP Inventory App Service"
+    [as-record-replay]="Include Record & Replay App Service"
     [asc-ex-mqtt]="Include External MQTT Trigger App Service"
 )
 
 ## Device Service Descriptions
 declare -A deviceServiceDesc=(
-    [ds-bacnet]="Include BACnet Device Service"
+    [ds-bacnet-ip]="Include BACnet-IP Device Service"
+    [ds-bacnet-mstp]="Include BACnet-MSTP Device Service"
     [ds-onvif-camera]="Include ONVIF Camera Device Service"
     [ds-usb-camera]="Include USB Camera Device Service"
     [ds-modbus]="Include ModBus Device Service"
@@ -70,6 +72,7 @@ declare -A deviceServiceDesc=(
     [ds-virtual]="Include Virtual Device Service"
     [ds-coap]="Include CoAP Device Service"
     [ds-gpio]="Include GPIO Device Service"
+    [ds-uart]="Include UART Device Service"
     [ds-llrp]="Include RFID LLRP Device Service"
 )
 

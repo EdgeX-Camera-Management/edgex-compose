@@ -15,24 +15,16 @@
 
 version: '3.7'
 
+volumes:
+  nanomq-log:
+
 services:
-  app-sample:
-    image: ${APP_SVC_REPOSITORY}/app-service-configurable${ARCH}:${APP_SERVICE_CONFIG_VERSION}
+  mqtt-broker:
+    image: emqx/nanomq:${NANOMQ_VERSION}
     ports:
-      - 127.0.0.1:59700:59700/tcp
-    container_name: edgex-app-sample
-    hostname: edgex-app-sample
-    env_file:
-      - common-non-security.env
-    environment:
-      EDGEX_PROFILE: sample
-      SERVICE_HOST: edgex-app-sample
-      CLIENTS_CORE_DATA_HOST: edgex-core-data
-      CLIENTS_CORE_COMMAND_HOST: edgex-core-command
-      CLIENTS_SUPPORT-NOTIFICATIONS_HOST: edgex-support-notifications
-    depends_on:
-      - consul
-      - core-data
+      - "127.0.0.1:1883:1883"
+    container_name: edgex-mqtt-broker
+    hostname: edgex-mqtt-broker
     read_only: true
     restart: always
     networks:
@@ -41,5 +33,4 @@ services:
       - no-new-privileges:true
     user: "${EDGEX_USER}:${EDGEX_GROUP}"
     volumes:
-      # use host timezone
-      - /etc/localtime:/etc/localtime:ro
+      - nanomq-log:/tmp

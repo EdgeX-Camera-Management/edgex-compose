@@ -1,5 +1,5 @@
 # /*******************************************************************************
-#  * Copyright 2021 Intel Corporation.
+#  * Copyright 2023 Intel Corporation.
 #  *
 #  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 #  * in compliance with the License. You may obtain a copy of the License at
@@ -16,23 +16,19 @@
 version: '3.7'
 
 services:
-  app-sample:
-    image: ${APP_SVC_REPOSITORY}/app-service-configurable${ARCH}:${APP_SERVICE_CONFIG_VERSION}
+  app-record-replay:
+    image: ${APP_SVC_REPOSITORY}/app-record-replay${ARCH}:${APP_RECORD_REPLAY_VERSION}
     ports:
-      - 127.0.0.1:59700:59700/tcp
-    container_name: edgex-app-sample
-    hostname: edgex-app-sample
+      - 127.0.0.1:59712:59712/tcp
+    container_name: edgex-app-record-replay
+    hostname: edgex-app-record-replay
     env_file:
       - common-non-security.env
     environment:
-      EDGEX_PROFILE: sample
-      SERVICE_HOST: edgex-app-sample
-      CLIENTS_CORE_DATA_HOST: edgex-core-data
-      CLIENTS_CORE_COMMAND_HOST: edgex-core-command
-      CLIENTS_SUPPORT-NOTIFICATIONS_HOST: edgex-support-notifications
+      SERVICE_HOST: edgex-app-record-replay
     depends_on:
       - consul
-      - core-data
+      - database
     read_only: true
     restart: always
     networks:
@@ -43,3 +39,4 @@ services:
     volumes:
       # use host timezone
       - /etc/localtime:/etc/localtime:ro
+

@@ -52,6 +52,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -80,6 +81,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: bind
       source: /tmp/edgex/secrets/app-rules-engine
       target: /tmp/edgex/secrets/app-rules-engine
@@ -115,6 +122,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_ACL_BOOTSTRAPTOKENPATH: /tmp/edgex/secrets/consul-acl-token/bootstrap_token.json
       STAGEGATE_REGISTRY_ACL_MANAGEMENTTOKENPATH: /tmp/edgex/secrets/consul-acl-token/mgmt_token.json
@@ -126,7 +134,7 @@ services:
       STAGEGATE_SECRETSTORESETUP_TOKENS_READYPORT: "54322"
       STAGEGATE_WAITFOR_TIMEOUT: 60s
     hostname: edgex-core-consul
-    image: hashicorp/consul:1.15
+    image: hashicorp/consul:1.16
     networks:
       edgex-network: null
     ports:
@@ -195,6 +203,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -223,6 +232,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: bind
       source: /tmp/edgex/secrets/core-command
       target: /tmp/edgex/secrets/core-command
@@ -259,6 +274,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -280,6 +296,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: bind
       source: /tmp/edgex/secrets/core-common-config-bootstrapper
       target: /tmp/edgex/secrets/core-common-config-bootstrapper
@@ -316,6 +338,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -344,6 +367,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: bind
       source: /tmp/edgex/secrets/core-data
       target: /tmp/edgex/secrets/core-data
@@ -378,6 +407,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -407,6 +437,12 @@ services:
       read_only: true
       volume: {}
     - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
       source: /tmp/edgex/secrets/core-metadata
       target: /tmp/edgex/secrets/core-metadata
       read_only: true
@@ -433,6 +469,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -505,6 +542,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -533,6 +571,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: bind
       source: /tmp/edgex/secrets/device-rest
       target: /tmp/edgex/secrets/device-rest
@@ -567,6 +611,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -596,6 +641,12 @@ services:
       read_only: true
       volume: {}
     - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
       source: /tmp/edgex/secrets/device-virtual
       target: /tmp/edgex/secrets/device-virtual
       read_only: true
@@ -622,6 +673,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -692,6 +744,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -700,7 +753,7 @@ services:
       STAGEGATE_SECRETSTORESETUP_TOKENS_READYPORT: "54322"
       STAGEGATE_WAITFOR_TIMEOUT: 60s
     hostname: edgex-kuiper
-    image: lfedge/ekuiper:1.10-alpine
+    image: lfedge/ekuiper:1.11-alpine
     networks:
       edgex-network: null
     ports:
@@ -720,6 +773,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: volume
       source: kuiper-data
       target: /kuiper/data
@@ -755,6 +814,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -772,6 +832,12 @@ services:
     - no-new-privileges:true
     user: root:root
     volumes:
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: volume
       source: edgex-init
       target: /edgex-init
@@ -799,6 +865,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -821,6 +888,12 @@ services:
     security_opt:
     - no-new-privileges:true
     volumes:
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: volume
       source: edgex-init
       target: /edgex-init
@@ -843,7 +916,7 @@ services:
     entrypoint:
     - /edgex-init/proxy_setup_wait_install.sh
     environment:
-      EDGEX_ADD_PROXY_ROUTE: ""
+      EDGEX_ADD_PROXY_ROUTE: device-rest.http://edgex-device-rest:59986
       EDGEX_SECURITY_SECRET_STORE: "true"
       PROXY_SETUP_HOST: edgex-security-proxy-setup
       ROUTES_CORE_COMMAND_HOST: edgex-core-command
@@ -861,6 +934,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -877,6 +951,12 @@ services:
     - no-new-privileges:true
     user: root:root
     volumes:
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: volume
       source: edgex-init
       target: /edgex-init
@@ -927,6 +1007,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -952,6 +1033,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: bind
       source: /tmp/edgex/secrets
       target: /tmp/edgex/secrets
@@ -997,6 +1084,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -1025,6 +1113,12 @@ services:
       target: /edgex-init
       read_only: true
       volume: {}
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
     - type: bind
       source: /tmp/edgex/secrets/support-notifications
       target: /tmp/edgex/secrets/support-notifications
@@ -1061,6 +1155,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
@@ -1090,6 +1185,12 @@ services:
       read_only: true
       volume: {}
     - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
       source: /tmp/edgex/secrets/support-scheduler
       target: /tmp/edgex/secrets/support-scheduler
       read_only: true
@@ -1115,6 +1216,13 @@ services:
     security_opt:
     - no-new-privileges:true
     user: 2002:2001
+    volumes:
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+      bind:
+        create_host_path: true
   vault:
     cap_add:
     - IPC_LOCK
@@ -1133,6 +1241,7 @@ services:
       STAGEGATE_DATABASE_HOST: edgex-redis
       STAGEGATE_DATABASE_PORT: "6379"
       STAGEGATE_DATABASE_READYPORT: "6379"
+      STAGEGATE_PROXYSETUP_READYPORT: "54325"
       STAGEGATE_READY_TORUNPORT: "54329"
       STAGEGATE_REGISTRY_HOST: edgex-core-consul
       STAGEGATE_REGISTRY_PORT: "8500"
